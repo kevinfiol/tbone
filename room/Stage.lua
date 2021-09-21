@@ -10,7 +10,7 @@ local Player = require 'obj.Player'
 local Stage = Object:extend()
 
 function Stage:new()
-    self.area = Area(Stage)
+    self.area = Area(Stage, { debug = false })
     self.main_canvas = love.graphics.newCanvas(vars.gw, vars.gh)
     self.timer = Timer()
 
@@ -38,11 +38,11 @@ function Stage:new()
     self.area:addGameObjects({ self.player })
 
     -- set collision callbacks
-    local beginContact = function(fixture_a, fixture_b, collision)
+    local function beginContact(fixture_a, fixture_b, collision)
         self.player:beginContact(fixture_a, fixture_b, collision)
     end
 
-    local endContact = function(fixture_a, fixture_b, collision)
+    local function endContact(fixture_a, fixture_b, collision)
         self.player:endContact(fixture_a, fixture_b, collision)
     end
 

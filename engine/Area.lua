@@ -3,11 +3,12 @@ local lume = require 'lib.lume'
 
 local Area = Object:extend()
 
-function Area:new(room)
+function Area:new(room, opts)
     self.room = room
     self.game_objects = {}
     self.world = nil
     self.tiled_map = nil
+    self.opts = opts or {}
 end
 
 function Area:update(dt)
@@ -43,6 +44,25 @@ function Area:draw()
     -- draw all game objects in area
     for _, game_object in ipairs(self.game_objects) do
         game_object:draw()
+    end
+
+    -- Debug code from: https://love2d.org/wiki/Tutorial:PhysicsDrawing#Final_code
+    if self.world and self.opts.debug then
+        for _, body in pairs(self.world:getBodies()) do
+            for _, fixture in pairs(body:getFixtures()) do
+                local shape = fixture:getShape()
+
+                love.graphics.setColor(1, 0, 0)
+                if shape:typeOf('CircleShape') then
+                    local cx, cy = body:getWorldPoints(shape:getPoint())
+                    love.graphics.circle("line", cx, cy, shape:getRadius())
+                elseif shape:typeOf('PolygonShape') then
+                    love.graphics.polygon("line", body:getWorldPoints(shape:getPoints()))
+                else
+                    love.graphics.line(body:getWorldPoints(shape:getPoints()))
+                end
+            end
+        end
     end
 end
 

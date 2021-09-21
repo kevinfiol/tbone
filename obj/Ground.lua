@@ -26,8 +26,8 @@ function Ground:update(dt)
 end
 
 function Ground:draw()
-    love.graphics.setColor(1, 0, 0)
-    love.graphics.rectangle('line', self.x, self.y, self.width, self.height)
+    -- love.graphics.setColor(1, 0, 0)
+    -- love.graphics.rectangle('line', self.x, self.y, self.width, self.height)
 end
 
 return Ground

@@ -6,8 +6,12 @@ function Collider:new(world, collider_type, opts)
     --[[
         opts = {
             x, y,
-            body_type, body_offset,
-            radius?, width?, height?,
+            body_type,
+            body_offset?,
+            fixed_rotation?
+            radius?,
+            width?,
+            height?,
             fixture_density?,
             restitution?
         }
@@ -23,6 +27,14 @@ function Collider:new(world, collider_type, opts)
     local x, y = opts.x, opts.y
     local body_type = opts.body_type or 'dynamic'
 
+    -- default fixed_rotation to true
+    local fixed_rotation
+    if opts.fixed_rotation == nil then
+        fixed_rotation = true
+    else
+        fixed_rotation = opts.fixed_rotation
+    end
+
     -- get body offsets if present
     if opts.body_offset then
         self.body_offset.x = opts.body_offset.x or nil
@@ -33,6 +45,7 @@ function Collider:new(world, collider_type, opts)
 
     -- create body
     self.body = love.physics.newBody(self.world, x, y, body_type)
+    self.body:setFixedRotation(fixed_rotation)
 
     -- create shape
     if self.type == 'Circle' then

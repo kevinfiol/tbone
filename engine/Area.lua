@@ -7,14 +7,10 @@ function Area:new(room, opts)
     self.room = room
     self.game_objects = {}
     self.world = nil
-    self.tiled_map = nil
     self.opts = opts or {}
 end
 
 function Area:update(dt)
-    -- update tiled map
-    if self.tiled_map then self.tiled_map:update(dt) end
-
     -- We update the physics world before updating all the
     -- game objects because we want to use up to date information
     -- for our game objects, and that will happen only after the
@@ -38,9 +34,6 @@ function Area:update(dt)
 end
 
 function Area:draw()
-    -- draw tiled map if exists
-    if self.tiled_map then self.tiled_map:draw() end
-
     -- draw all game objects in area
     for _, game_object in ipairs(self.game_objects) do
         game_object:draw()
@@ -79,10 +72,6 @@ function Area:destroy()
     if self.world then
         self.world:destroy()
         self.world = nil
-    end
-
-    if self.tiled_map then
-        self.tiled_map = nil
     end
 end
 
@@ -124,10 +113,6 @@ function Area:getClosestObject(x, y, radius, object_types)
         end
     end
     return lowest.object
-end
-
-function Area:setTiledMap(tiled_map)
-    self.tiled_map = tiled_map
 end
 
 function Area:distance(x1, y1, x2, y2)

@@ -18,9 +18,8 @@ function Stage:new()
     self.area.world = love.physics.newWorld(0, 0)
 
     -- create tiled map
-    local tiledMap = cartographer.load('assets/maps/map1.lua')
-    local ground_1 = tiledMap.layers.ground_1
-    self.area:setTiledMap(tiledMap)
+    self.tiled_map = cartographer.load('assets/maps/map1.lua')
+    local ground_1 = self.tiled_map.layers.ground_1
 
     -- create ground collisions
     for _, o in ipairs(ground_1.objects) do
@@ -59,6 +58,7 @@ function Stage:draw()
         love.graphics.setCanvas(self.main_canvas)
         love.graphics.clear()
             camera:attach(0, 0, vars.gw, vars.gh)
+            if self.tiled_map then self.tiled_map:draw() end
             self.area:draw()
             camera:detach()
         love.graphics.setCanvas()
@@ -79,6 +79,8 @@ function Stage:destroy()
 
     self.area:destroy()
     self.area = nil
+
+    self.tiled_map = nil
 end
 
 return Stage

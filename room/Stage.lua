@@ -3,6 +3,7 @@ local Area = require 'engine.Area'
 local Object = require 'lib.classic'
 local Timer = require 'lib.timer'
 local cartographer = require 'lib.cartographer'
+local lume = require 'lib.lume'
 
 local Ground = require 'obj.Ground'
 local Player = require 'obj.Player'
@@ -19,9 +20,40 @@ function Stage:new()
 
     -- create tiled map
     self.tiled_map = cartographer.load('assets/maps/map1.lua')
-    local ground_1 = self.tiled_map.layers.ground_1
+
+    -- the bg_tileset is 64x64 (see /assets/bg.png)
+    -- our game is 480x270 (see vars.lua)
+    -- therefore, we will repeat the bg tile enough times on the x & y axis to cover the screen
+    -- to ensure that we cover the whole screen
+    -- https://love2d.org/wiki/Tutorial:Efficient_Tile-based_Scrolling
+    -- https://love2d.org/forums/viewtopic.php?t=32969
+
+    -- build background
+    local bg_img = love.graphics.newImage('assets/bg.png')
+    local bg_quad = love.graphics.newQuad(0, 0, 64, 64, bg_img:getDimensions())
+
+    local tile_width = 64
+    local bg_width = 9 -- in tiles
+    local bg_height = 5 -- in tiles
+    local bg_batch = love.graphics.newSpriteBatch(bg_img, bg_width * bg_height)
+
+    self.bg = {
+        tile = { img = bg_img, height = tile_width, width = tile_width },
+        offset = { x = 0, y = 0 },
+        quad = bg_quad,
+        batch = bg_batch,
+        x = 0,
+        y = 0,
+        width = bg_width, -- in tiles
+        height = bg_height, -- in tiles
+        pixel_width = bg_width * tile_width,
+        pixel_height = bg_height * tile_width,
+        -- tiles = {}
+    }
 
     -- create ground collisions
+    -- `ground_1` is an object layer; contains no sprite data
+    local ground_1 = self.tiled_map.layers.ground_1
     for _, o in ipairs(ground_1.objects) do
         -- create collidable objects for all collidable Tiled objects
         local ground_tile = Ground(self.area, o.x, o.y, {
@@ -58,7 +90,14 @@ function Stage:draw()
         love.graphics.setCanvas(self.main_canvas)
         love.graphics.clear()
             camera:attach(0, 0, vars.gw, vars.gh)
-            if self.tiled_map then self.tiled_map:draw() end
+
+            -- handle tiled map drawing here
+            if self.tiled_map then
+                -- self.tiled_map.layers.bg:draw()
+                self:drawBgTiles()
+                self.tiled_map.layers.fg:draw()
+            end
+
             self.area:draw()
             camera:detach()
         love.graphics.setCanvas()
@@ -81,6 +120,30 @@ function Stage:destroy()
     self.area = nil
 
     self.tiled_map = nil
+end
+
+function Stage:drawBgTiles()
+    local half_tile_width = self.bg.tile.width / 2
+    local increment = -(half_tile_width / (self.bg.tile.width)) * 1
+
+    if self.bg.x == -(self.bg.pixel_width) then
+        self.bg.x = 0
+    end
+
+    self.bg.x = self.bg.x + increment
+    self.bg.batch:clear()
+    local bg_double_width = self.bg.width * 2 -- let's draw the bg twice, one next to the other
+
+    for i = 1, bg_double_width do
+        for j = 1, self.bg.height do
+            local x = (64 * i) - 64 + self.bg.offset.x + self.bg.x
+            local y = (64 * j) - 64 + self.bg.offset.y + self.bg.y
+            self.bg.batch:add(self.bg.quad, x, y)
+        end
+    end
+
+    self.bg.batch:flush()
+    love.graphics.draw(self.bg.batch)
 end
 
 return Stage

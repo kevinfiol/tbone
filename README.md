@@ -1,3 +1,3 @@
-# bytengine
+# tbone (wip)
 
-A LOVE2D template based on [a327ex's BYTEPATH tutorial](https://github.com/a327ex/BYTEPATH). WIP, making (opinionated) changes as I go along.
+An exploration into T-Bone's mind. But mostly an exercise in dogfooding [bytengine](https://github.com/kevinfiol/bytengine). The physics abstraction has been gutted and replaced with a single Collider module.

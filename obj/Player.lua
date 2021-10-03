@@ -2,6 +2,7 @@ local GameObject = require 'engine.GameObject'
 local Collider = require 'engine.Collider'
 local baton = require 'lib.baton'
 local sodapop = require 'lib.sodapop'
+local Projectile = require 'obj.Projectile'
 
 local Player = GameObject:extend()
 
@@ -80,7 +81,8 @@ function Player:new(area, x, y, opts)
         controls = {
             left = { 'key:left' },
             right = { 'key:right' },
-            jump = { 'key:z' }
+            jump = { 'key:z' },
+            shoot = { 'key:x' }
         }
     })
 
@@ -109,6 +111,9 @@ function Player:update(dt)
     self:move(dt)
     self:applyGravity(dt)
     self:jump(dt)
+
+    -- attacks
+    self:attack(dt)
 
     -- sprite animation update
     self.sprite:update(dt)
@@ -186,6 +191,18 @@ function Player:move(dt)
         end
     else
         self:applyFriction(dt)
+    end
+end
+
+function Player:attack(dt)
+    if self.input:pressed('shoot') then
+        -- 16 + 4 = 20
+        -- 0 - 4 = -4
+        local x_velocity = self.sprite.flipX and -400 or 400
+        local x_spawn = self.sprite.flipX and -4 or 20
+        local bullet = Projectile(self.area, self.x + x_spawn, self.y + 8)
+        bullet.collider.body:setLinearVelocity(x_velocity, 0)
+        self.area:addGameObjects({ bullet })
     end
 end
 

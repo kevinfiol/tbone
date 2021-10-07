@@ -71,6 +71,11 @@ function Stage:new()
     -- set collision callbacks
     local function beginContact(fixture_a, fixture_b, collision)
         self.player:beginContact(fixture_a, fixture_b, collision)
+
+        -- set all player's projectiles collision callbacks
+        for _, projectile in ipairs(self.player.projectiles) do
+            projectile:beginContact(fixture_a, fixture_b, collision)
+        end
     end
 
     local function endContact(fixture_a, fixture_b, collision)

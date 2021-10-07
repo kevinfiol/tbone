@@ -71,6 +71,20 @@ function Player:new(area, x, y, opts)
         }
     })
 
+    self.sprite:addAnimation('attack', {
+        image = image,
+        frameWidth = frame_width,
+        frameHeight = frame_height,
+        onReachedEnd = function()
+            if self.is_grounded then
+                self.sprite:switch('idle')
+            end
+        end,
+        frames = {
+            {5, 1, 7, 1, 0.1}
+        }
+    })
+
     -- this is important; it sets the sprite image to be anchored to the actual coordinates of the Body used for Physics
     self.sprite:setAnchor(function()
         return self.x + frame_width_half, self.y + frame_height_half
@@ -85,6 +99,17 @@ function Player:new(area, x, y, opts)
             shoot = { 'key:x' }
         }
     })
+
+    -- projectiles
+    self.projectiles = {}
+    for i = 1, 5 do
+        table.insert(self.projectiles,
+            -- projectiles are inactive by default
+            Projectile(self.area, -100, -100)
+        )
+    end
+
+    self.area:addGameObjects(self.projectiles)
 
     -- flags
     self.is_grounded = false
@@ -195,14 +220,29 @@ function Player:move(dt)
 end
 
 function Player:attack(dt)
-    if self.input:pressed('shoot') then
+    -- first check if any projectiles are inactive
+    local can_shoot = false
+    for _, projectile in ipairs(self.projectiles) do
+        if not projectile.is_active then
+            can_shoot = true
+            break
+        end
+    end
+
+    if self.input:pressed('shoot') and can_shoot then
+        self.sprite:switch('attack', false)
         -- 16 + 4 = 20
         -- 0 - 4 = -4
         local x_velocity = self.sprite.flipX and -400 or 400
-        local x_spawn = self.sprite.flipX and -4 or 20
-        local bullet = Projectile(self.area, self.x + x_spawn, self.y + 8)
-        bullet.collider.body:setLinearVelocity(x_velocity, 0)
-        self.area:addGameObjects({ bullet })
+        local x_spawn = self.x + (self.sprite.flipX and -4 or 20)
+        local y_spawn = self.y + 8
+
+        -- get next projectile, move to back of the list
+        local projectile = table.remove(self.projectiles, 1)
+        table.insert(self.projectiles, projectile)
+
+        projectile:setActive(true)
+        projectile:launch(x_spawn, y_spawn, x_velocity)
     end
 end
 
@@ -249,7 +289,7 @@ end
 function Player:beginContact(fixture_a, fixture_b, collision)
     if self.is_grounded then return end
 
-    local normal_x, normal_y = collision:getNormal()
+    local _, normal_y = collision:getNormal()
     if fixture_a == self.collider.fixture then
         if normal_y > 0 then
             -- ground is below player

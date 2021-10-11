@@ -77,7 +77,11 @@ function Player:new(area, x, y, opts)
         frameHeight = frame_height,
         onReachedEnd = function()
             if self.is_grounded then
-                self.sprite:switch('idle')
+                if self.input:down('right') or self.input:down('left') then
+                    self.sprite:switch('walk')
+                else
+                    self.sprite:switch('idle')
+                end
             end
         end,
         frames = {
@@ -112,6 +116,7 @@ function Player:new(area, x, y, opts)
     self.area:addGameObjects(self.projectiles)
 
     -- flags
+    self.is_walking = false
     self.is_grounded = false
     self.is_jumping = false
     self.jump_timer = 0
@@ -149,7 +154,8 @@ function Player:draw()
 end
 
 function Player:jump(dt)
-    local is_jump_pressed = self.input:down('jump')
+    local is_jump_pressed = self.input:pressed('jump')
+    local is_jump_down = self.input:down('jump')
 
     -- first, if the player is not touching the ground, show fall animation
     if not self.is_grounded then
@@ -157,24 +163,26 @@ function Player:jump(dt)
     end
 
     -- if the player had been jumping last frame, but is no longer jumping, switch to falling
-    if self.is_jumping and not is_jump_pressed then
+    if self.is_jumping and not is_jump_down then
         self.sprite:switch('fall')
+        self.is_jumping = false
+    elseif self.is_jumping and self.is_grounded then
+        -- if player had been jumping but has landed
         self.is_jumping = false
     end
 
-    -- if the player has landed, reset jump timer
-    if self.is_grounded and not self.is_jumping then
-        self.jump_timer = 0
+    -- initialize jump
+    if self.is_grounded and self.jump_timer == 0 and is_jump_pressed then
+        self.is_jumping = true
+        self.is_grounded = false -- kinda hacky and redunant because of Player:endContact should handle this
     end
 
-    -- if the player is in the middle of a jump
-    if self.jump_timer >= 0 and is_jump_pressed then
+    -- continue jump is jump is being held
+    if self.is_jumping and is_jump_down then
         self.sprite:switch('jump')
-        self.is_jumping = true
         self.jump_timer = self.jump_timer + dt
     else
-        -- the jump has ended
-        self.jump_timer = -1
+        self.jump_timer = 0
     end
 
     if self.jump_timer > 0 and self.jump_timer < 0.35 then
@@ -271,15 +279,11 @@ function Player:applyGravity(dt)
 end
 
 function Player:land(collision)
-    if self.input:down('right') then
-        self.sprite:switch('walk')
-    elseif self.input:down('left') then
-        self.sprite.flipX = true
+    if self.input:down('right') or self.input:down('left') then
         self.sprite:switch('walk')
     else
         self.sprite:switch('idle')
     end
-
 
     self.current_ground_collision = collision
     self.velocity.y = 0

@@ -1,6 +1,7 @@
 local vars = require 'vars'
 local GameObject = require 'engine.GameObject'
 local Collider = require 'engine.Collider'
+local sodapop = require 'lib.sodapop'
 
 local Projectile = GameObject:extend()
 
@@ -19,12 +20,31 @@ function Projectile:new(area, x, y, opts)
 
     -- default to inactive
     self:setActive(self.is_active)
+
+    -- load sprite
+    local image = love.graphics.newImage('assets/projectile.png')
+    local frame_width = 8
+    local half_width = frame_width / 2
+
+    self.sprite = sodapop.newAnimatedSprite(self.x + half_width, self.y + half_width)
+    self.sprite:addAnimation('default', {
+        image = image,
+        frameWidth = frame_width,
+        frameHeight = frame_width,
+        frames = {
+            {1, 1, 3, 1, 0.1}
+        }
+    })
+
+    self.sprite:setAnchor(function()
+        return self.x + half_width, self.y + half_width
+    end)
 end
 
 function Projectile:update(dt)
     Projectile.super.update(self, dt)
-
     if self.is_active then
+        self.sprite:update(dt)
         if self.x < 0 or self.y < 0 or self.x > vars.gw or self.y > vars.gh then
             self:setActive(false)
         end
@@ -33,8 +53,9 @@ end
 
 function Projectile:draw()
     if self.is_active then
-        love.graphics.setColor(1, 0, 0)
-        love.graphics.circle('fill', self.x, self.y, self.radius)
+        self.sprite:draw()
+        -- love.graphics.setColor(1, 0, 0)
+        -- love.graphics.circle('fill', self.x, self.y, self.radius)
     end
 end
 
@@ -43,6 +64,7 @@ function Projectile:setActive(is_active)
         self.collider.body:setLinearVelocity(0, 0)
         self.collider.fixture:setFilterData(1, 0, 0)
     else
+        self.sprite:switch('default')
         self.collider.fixture:setFilterData(1, 65535, 0)
     end
 
@@ -58,6 +80,12 @@ function Projectile:setPosition(x, y)
 end
 
 function Projectile:launch(x, y, x_velocity)
+    if x_velocity < 0 then
+        self.sprite.flipX = true
+    else
+        self.sprite.flipX = false
+    end
+
     self:setPosition(x, y)
     self.collider.body:setLinearVelocity(x_velocity, 0)
 end

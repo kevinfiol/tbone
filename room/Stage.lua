@@ -4,6 +4,7 @@ local Object = require 'lib.classic'
 local Timer = require 'lib.timer'
 local cartographer = require 'lib.cartographer'
 local lume = require 'lib.lume'
+local ripple = require 'lib.ripple'
 
 local Ground = require 'obj.Ground'
 local Player = require 'obj.Player'
@@ -17,6 +18,11 @@ function Stage:new()
 
     -- create physics world for this area
     self.area.world = love.physics.newWorld(0, 0)
+
+    -- music!
+    local source = love.audio.newSource('assets/audio/theme.wav', 'static')
+    self.music = ripple.newSound(source, { loop = true })
+    self.music:play()
 
     -- create tiled map
     self.tiled_map = cartographer.load('assets/maps/map1.lua')
@@ -48,7 +54,6 @@ function Stage:new()
         height = bg_height, -- in tiles
         pixel_width = bg_width * tile_width,
         pixel_height = bg_height * tile_width,
-        -- tiles = {}
     }
 
     -- create ground collisions
@@ -93,6 +98,7 @@ function Stage:update(dt)
     end
 
     camera:update(dt)
+    self.music:update(dt)
 end
 
 function Stage:draw()

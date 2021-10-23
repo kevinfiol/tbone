@@ -2,9 +2,13 @@ local Object = require 'lib.classic'
 
 local Collider = Object:extend()
 
+local classes = {}
+
 function Collider:new(world, collider_type, opts)
     --[[
         opts = {
+            class,
+            ignores,
             x, y,
             body_type,
             body_offset?,
@@ -17,6 +21,8 @@ function Collider:new(world, collider_type, opts)
         }
     --]]
 
+    self.class = opts.class
+    self.ignores = opts.ignores or {}
     self.world = world
     self.type = collider_type
     self.body = nil
@@ -96,6 +102,10 @@ function Collider:setPosition(x, y)
     if self.body_offset.y then new_y = y - self.body_offset.y end
 
     self.body:setPosition(new_x, new_y)
+end
+
+function Collider:setClass(class)
+    self.class = class
 end
 
 return Collider

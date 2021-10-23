@@ -2,6 +2,7 @@ local GameObject = require 'engine.GameObject'
 local Collider = require 'engine.Collider'
 local baton = require 'lib.baton'
 local sodapop = require 'lib.sodapop'
+local ripple = require 'lib.ripple'
 local Projectile = require 'obj.Projectile'
 
 local Player = GameObject:extend()
@@ -27,72 +28,7 @@ function Player:new(area, x, y, opts)
 
     -- tbone.png 208x16
     local image = love.graphics.newImage('assets/tbone.png')
-
-    local frame_width = 16
-    local frame_height = 16
-
-    local frame_width_half = frame_width / 2
-    local frame_height_half = frame_height / 2
-
-    self.sprite = sodapop.newAnimatedSprite(self.x + frame_width_half, self.y + frame_height_half)
-    self.sprite:addAnimation('idle', {
-        image = image,
-        frameWidth = frame_width,
-        frameHeight = frame_height,
-        frames = {
-            {1, 1, 4, 1, 0.1}
-        }
-    })
-
-    self.sprite:addAnimation('walk', {
-        image = image,
-        frameWidth = frame_width,
-        frameHeight = frame_height,
-        frames = {
-            {8, 1, 11, 1, 0.1}
-        }
-    })
-
-    self.sprite:addAnimation('fall', {
-        image = image,
-        frameWidth = frame_width,
-        frameHeight = frame_height,
-        frames = {
-            {13, 1, 13, 1, 0.1}
-        }
-    })
-
-    self.sprite:addAnimation('jump', {
-        image = image,
-        frameWidth = frame_width,
-        frameHeight = frame_height,
-        frames = {
-            {12, 1, 12, 1, 0.1}
-        }
-    })
-
-    self.sprite:addAnimation('attack', {
-        image = image,
-        frameWidth = frame_width,
-        frameHeight = frame_height,
-        onReachedEnd = function()
-            if self.is_grounded then
-                if self.input:down('right') or self.input:down('left') then
-                    self.sprite:switch('walk')
-                else
-                    self.sprite:switch('idle')
-                end
-            end
-        end,
-        frames = {
-            {5, 1, 7, 1, 0.1}
-        }
-    })
-
-    -- this is important; it sets the sprite image to be anchored to the actual coordinates of the Body used for Physics
-    self.sprite:setAnchor(function()
-        return self.x + frame_width_half, self.y + frame_height_half
-    end)
+    self:setSpriteConfig(image)
 
     -- define controls
     self.input = baton.new({
@@ -128,6 +64,14 @@ function Player:new(area, x, y, opts)
     self.acceleration = 900
     self.friction = 800
     self.gravity = 1500
+
+    -- load sounds
+    local jump = love.audio.newSource('assets/audio/jump.wav', 'static')
+    local shoot = love.audio.newSource('assets/audio/shoot.wav', 'static')
+    self.sounds = {
+        jump = ripple.newSound(jump, { volume = 1, loop = false }),
+        shoot = ripple.newSound(shoot, { volume = 1, loop = false }),
+    }
 end
 
 function Player:update(dt)
@@ -147,6 +91,11 @@ function Player:update(dt)
 
     -- sprite animation update
     self.sprite:update(dt)
+
+    -- update sounds
+    for _, sound in ipairs(self.sounds) do
+        sound:update(dt)
+    end
 end
 
 function Player:draw()
@@ -173,6 +122,7 @@ function Player:jump(dt)
 
     -- initialize jump
     if self.is_grounded and self.jump_timer == 0 and is_jump_pressed then
+        self.sounds.jump:play()
         self.is_jumping = true
         self.is_grounded = false -- kinda hacky and redunant because of Player:endContact should handle this
     end
@@ -238,6 +188,7 @@ function Player:attack(dt)
     end
 
     if self.input:pressed('shoot') and can_shoot then
+        self.sounds.shoot:play()
         self.sprite:switch('attack', false)
         -- 16 + 4 = 20
         -- 0 - 4 = -4
@@ -312,6 +263,75 @@ function Player:endContact(fixture_a, fixture_b, collision)
             self.is_grounded = false
         end
     end
+end
+
+function Player:setSpriteConfig(image)
+    local frame_width = 16
+    local frame_height = 16
+
+    local frame_width_half = frame_width / 2
+    local frame_height_half = frame_height / 2
+
+    self.sprite = sodapop.newAnimatedSprite(self.x + frame_width_half, self.y + frame_height_half)
+
+    -- this is important; it sets the sprite image to be anchored to the actual coordinates of the Body used for Physics
+    self.sprite:setAnchor(function()
+        return self.x + frame_width_half, self.y + frame_height_half
+    end)
+
+    self.sprite:addAnimation('idle', {
+        image = image,
+        frameWidth = frame_width,
+        frameHeight = frame_height,
+        frames = {
+            {1, 1, 4, 1, 0.1}
+        }
+    })
+
+    self.sprite:addAnimation('walk', {
+        image = image,
+        frameWidth = frame_width,
+        frameHeight = frame_height,
+        frames = {
+            {8, 1, 11, 1, 0.1}
+        }
+    })
+
+    self.sprite:addAnimation('fall', {
+        image = image,
+        frameWidth = frame_width,
+        frameHeight = frame_height,
+        frames = {
+            {13, 1, 13, 1, 0.1}
+        }
+    })
+
+    self.sprite:addAnimation('jump', {
+        image = image,
+        frameWidth = frame_width,
+        frameHeight = frame_height,
+        frames = {
+            {12, 1, 12, 1, 0.1}
+        }
+    })
+
+    self.sprite:addAnimation('attack', {
+        image = image,
+        frameWidth = frame_width,
+        frameHeight = frame_height,
+        onReachedEnd = function()
+            if self.is_grounded then
+                if self.input:down('right') or self.input:down('left') then
+                    self.sprite:switch('walk')
+                else
+                    self.sprite:switch('idle')
+                end
+            end
+        end,
+        frames = {
+            {5, 1, 7, 1, 0.1}
+        }
+    })
 end
 
 return Player

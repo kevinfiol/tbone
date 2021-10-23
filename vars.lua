@@ -1,9 +1,16 @@
 -- game variables
 local vars = {
-    gw = 480, -- base resolution width
-    gh = 270, -- base resolution height
+    gw = 240, -- base resolution width
+    gh = 180, -- base resolution height
     sx = 2, -- scale applied to base resolution x axis
     sy = 2, -- scale applied to base resolution y axis
+
+    bounds = {
+        right = nil,
+        left = nil,
+        top = nil,
+        bottom = nil
+    },
 
     colors = {
         default_color = {0.87, 0.87, 0.87},

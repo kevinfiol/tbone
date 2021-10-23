@@ -6,7 +6,6 @@ local baton = require 'lib.baton'
 
 local input
 local rooms
-camera = Camera() -- global camera
 
 local resize = function(s)
     love.window.setMode(s * vars.gw, s * vars.gh)
@@ -15,6 +14,9 @@ end
 
 function love.load()
     rooms = RoomManager()
+
+    camera = Camera() -- global camera
+    camera:setFollowStyle('PLATFORMER')
 
     -- scale window
     resize(2)
@@ -28,8 +30,13 @@ function love.load()
 end
 
 function love.update(dt)
+    -- keep the bounds updated via the camera position
+    vars.bounds.top = camera.y - (vars.gh / 2)
+    vars.bounds.bottom = camera.y + (vars.gh / 2)
+    vars.bounds.right = camera.x + (vars.gw / 2)
+    vars.bounds.left = camera.x - (vars.gw / 2)
+
     if rooms.current_room then rooms.current_room:update(dt) end
-    camera:update(dt)
 end
 
 function love.draw()

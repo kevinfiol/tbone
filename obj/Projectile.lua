@@ -45,7 +45,8 @@ function Projectile:update(dt)
     Projectile.super.update(self, dt)
     if self.is_active then
         self.sprite:update(dt)
-        if self.x < 0 or self.y < 0 or self.x > vars.gw or self.y > vars.gh then
+        if self.x < vars.bounds.left or self.y < vars.bounds.top or self.x > vars.bounds.right or self.y > vars.bounds.bottom then
+            print('destroy projectile')
             self:setActive(false)
         end
     end
@@ -62,10 +63,12 @@ end
 function Projectile:setActive(is_active)
     if not is_active then
         self.collider.body:setLinearVelocity(0, 0)
-        self.collider.fixture:setFilterData(1, 0, 0)
+        self.collider.fixture:setCategory(1)
+        self.collider.fixture:setMask(1)
     else
         self.sprite:switch('default')
-        self.collider.fixture:setFilterData(1, 65535, 0)
+        self.collider.fixture:setCategory(1)
+        self.collider.fixture:setMask(2)
     end
 
     self.is_active = is_active

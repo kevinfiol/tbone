@@ -88,6 +88,11 @@ end
 function Stage:update(dt)
     if self.area then self.area:update(dt) end
     if self.timer then self.timer:update(dt) end
+    if self.player then
+        camera:follow(self.player.x, self.player.y)
+    end
+
+    camera:update(dt)
 end
 
 function Stage:draw()

@@ -9,6 +9,7 @@ function Ground:new(area, x, y, opts)
     self.height = opts.height or 8
 
     self.collider = Collider(self.area.world, 'Rectangle', {
+        collision_class = 'Ground',
         x = self.x,
         y = self.y,
         width = self.width,

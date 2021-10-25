@@ -12,6 +12,7 @@ function Projectile:new(area, x, y, opts)
     self.is_active = opts.is_active or false
 
     self.collider = Collider(self.area.world, 'Circle', {
+        collision_class = 'Ghost', -- defaults to Ghost
         x = self.x,
         y = self.y,
         radius = self.radius,
@@ -46,7 +47,6 @@ function Projectile:update(dt)
     if self.is_active then
         self.sprite:update(dt)
         if self.x < vars.bounds.left or self.y < vars.bounds.top or self.x > vars.bounds.right or self.y > vars.bounds.bottom then
-            print('destroy projectile')
             self:setActive(false)
         end
     end
@@ -63,12 +63,10 @@ end
 function Projectile:setActive(is_active)
     if not is_active then
         self.collider.body:setLinearVelocity(0, 0)
-        self.collider.fixture:setCategory(1)
-        self.collider.fixture:setMask(1)
+        self.collider:setCollisionClass('Ghost')
     else
         self.sprite:switch('default')
-        self.collider.fixture:setCategory(1)
-        self.collider.fixture:setMask(2)
+        self.collider:setCollisionClass('Projectile')
     end
 
     self.is_active = is_active

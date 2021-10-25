@@ -1,14 +1,14 @@
 local Object = require 'lib.classic'
+local lume = require 'lib.lume'
+local collisions = require 'collisions'
 
 local Collider = Object:extend()
 
-local classes = {}
-
+-- https://love2d.org/forums/viewtopic.php?f=4&t=75441
 function Collider:new(world, collider_type, opts)
     --[[
         opts = {
-            class,
-            ignores,
+            collision_class,
             x, y,
             body_type,
             body_offset?,
@@ -21,8 +21,7 @@ function Collider:new(world, collider_type, opts)
         }
     --]]
 
-    self.class = opts.class
-    self.ignores = opts.ignores or {}
+    self.collision_class = opts.collision_class or 'Default'
     self.world = world
     self.type = collider_type
     self.body = nil
@@ -73,6 +72,9 @@ function Collider:new(world, collider_type, opts)
     -- set collider as user data on fixture
     -- this is useful because we are only given the fixture on collision callbacks
     self.fixture:setUserData(self)
+
+    -- update fixture categories and mask
+    self:setCollisionClass(self.collision_class)
 end
 
 function Collider:destroy()
@@ -104,8 +106,15 @@ function Collider:setPosition(x, y)
     self.body:setPosition(new_x, new_y)
 end
 
-function Collider:setClass(class)
-    self.class = class
+function Collider:setCollisionClass(collision_class)
+    self.collision_class = collision_class
+
+    -- assign collision categories + masks
+    local collision_props = collisions[self.collision_class]
+    local categories = collision_props[1]
+    local masks = collision_props[2]
+    self.fixture:setCategory(unpack(categories))
+    self.fixture:setMask(unpack(masks))
 end
 
 return Collider

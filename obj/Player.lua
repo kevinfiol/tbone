@@ -15,6 +15,7 @@ function Player:new(area, x, y, opts)
 
     -- physics
     self.collider = Collider(self.area.world, 'Rectangle', {
+        collision_class = 'Player',
         x = self.x,
         y = self.y,
         width = 8, -- this is the actual hitbox

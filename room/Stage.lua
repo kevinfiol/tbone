@@ -25,7 +25,7 @@ function Stage:new()
     self.music:play()
 
     -- create tiled map
-    self.tiled_map = cartographer.load('assets/maps/map1.lua')
+    self.tiled_map = cartographer.load('assets/maps/map2.lua')
 
     -- the bg_tileset is 64x64 (see /assets/bg.png)
     -- our game is 480x270 (see vars.lua)
@@ -57,8 +57,8 @@ function Stage:new()
     }
 
     -- create ground collisions
-    -- `ground_1` is an object layer; contains no sprite data
-    local ground_1 = self.tiled_map.layers.ground_1
+    -- `collidables` is an object layer; contains no sprite data
+    local ground_1 = self.tiled_map.layers.collidables
     for _, o in ipairs(ground_1.objects) do
         -- create collidable objects for all collidable Tiled objects
         local ground_tile = Ground(self.area, o.x, o.y, {
@@ -93,11 +93,11 @@ end
 function Stage:update(dt)
     if self.area then self.area:update(dt) end
     if self.timer then self.timer:update(dt) end
-    if self.player then
-        camera:follow(self.player.x, self.player.y)
-    end
+    -- if self.player then
+    --     camera:follow(self.player.x, self.player.y)
+    -- end
 
-    camera:update(dt)
+    -- camera:update(dt)
     self.music:update(dt)
 end
 
@@ -105,7 +105,7 @@ function Stage:draw()
     if self.area then
         love.graphics.setCanvas(self.main_canvas)
         love.graphics.clear()
-            camera:attach(0, 0, vars.gw, vars.gh)
+            -- camera:attach(0, 0, vars.gw, vars.gh)
 
             -- handle tiled map drawing here
             if self.tiled_map then
@@ -115,7 +115,7 @@ function Stage:draw()
             end
 
             self.area:draw()
-            camera:detach()
+            -- camera:detach()
         love.graphics.setCanvas()
 
         love.graphics.setColor(255, 255, 255, 255)

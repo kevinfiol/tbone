@@ -1,7 +1,7 @@
 -- game variables
 local vars = {
     gw = 240, -- base resolution width
-    gh = 180, -- base resolution height
+    gh = 208, -- base resolution height
     sx = 2, -- scale applied to base resolution x axis
     sy = 2, -- scale applied to base resolution y axis
 

@@ -46,9 +46,9 @@ function Projectile:update(dt)
     Projectile.super.update(self, dt)
     if self.is_active then
         self.sprite:update(dt)
-        if self.x < vars.bounds.left or self.y < vars.bounds.top or self.x > vars.bounds.right or self.y > vars.bounds.bottom then
-            self:setActive(false)
-        end
+        -- if self.x < vars.bounds.left or self.y < vars.bounds.top or self.x > vars.bounds.right or self.y > vars.bounds.bottom then
+        --     self:setActive(false)
+        -- end
     end
 end
 

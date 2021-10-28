@@ -12,20 +12,23 @@ local Player = require 'obj.Player'
 local Stage = Object:extend()
 
 function Stage:new()
-    self.area = Area(Stage, { debug = false })
+    self.player = nil
+    self.area = nil
+    self.tiled_map = nil
+    self.neighbors = {
+        up = nil,
+        down = nil,
+        right = nil,
+        left = nil
+    }
+
     self.main_canvas = love.graphics.newCanvas(vars.gw, vars.gh)
     self.timer = Timer()
-
-    -- create physics world for this area
-    self.area.world = love.physics.newWorld(0, 0)
 
     -- music!
     local source = love.audio.newSource('assets/audio/theme.wav', 'static')
     self.music = ripple.newSound(source, { loop = true })
     self.music:play()
-
-    -- create tiled map
-    self.tiled_map = cartographer.load('assets/maps/map2.lua')
 
     -- the bg_tileset is 64x64 (see /assets/bg.png)
     -- our game is 480x270 (see vars.lua)
@@ -33,7 +36,6 @@ function Stage:new()
     -- to ensure that we cover the whole screen
     -- https://love2d.org/wiki/Tutorial:Efficient_Tile-based_Scrolling
     -- https://love2d.org/forums/viewtopic.php?t=32969
-
     -- build background
     local bg_img = love.graphics.newImage('assets/bg.png')
     local bg_quad = love.graphics.newQuad(0, 0, 64, 64, bg_img:getDimensions())
@@ -56,38 +58,8 @@ function Stage:new()
         pixel_height = bg_height * tile_width,
     }
 
-    -- create ground collisions
-    -- `collidables` is an object layer; contains no sprite data
-    local ground_1 = self.tiled_map.layers.collidables
-    for _, o in ipairs(ground_1.objects) do
-        -- create collidable objects for all collidable Tiled objects
-        local ground_tile = Ground(self.area, o.x, o.y, {
-            width = o.width,
-            height = o.height
-        })
-
-        self.area:addGameObjects({ ground_tile })
-    end
-
-    -- create player object
-    self.player = Player(self.area, vars.gw / 16, vars.gh / 2)
-    self.area:addGameObjects({ self.player })
-
-    -- set collision callbacks
-    local function beginContact(fixture_a, fixture_b, collision)
-        self.player:beginContact(fixture_a, fixture_b, collision)
-
-        -- set all player's projectiles collision callbacks
-        for _, projectile in ipairs(self.player.projectiles) do
-            projectile:beginContact(fixture_a, fixture_b, collision)
-        end
-    end
-
-    local function endContact(fixture_a, fixture_b, collision)
-        self.player:endContact(fixture_a, fixture_b, collision)
-    end
-
-    self.area.world:setCallbacks(beginContact, endContact)
+    -- load the default area
+    self:loadArea('map1.lua', { x = vars.gw / 16, y = vars.gh / 2 })
 end
 
 function Stage:update(dt)
@@ -96,6 +68,10 @@ function Stage:update(dt)
     -- if self.player then
     --     camera:follow(self.player.x, self.player.y)
     -- end
+
+    if self.player then
+        self:triggerMapTransition()
+    end
 
     -- camera:update(dt)
     self.music:update(dt)
@@ -135,7 +111,13 @@ function Stage:destroy()
     self.area:destroy()
     self.area = nil
 
+    self.music:stop()
+    self.music = nil
+
     self.tiled_map = nil
+    self.player = nil
+    self.neighbors = nil
+    self.bg = nil
 end
 
 function Stage:drawBgTiles()
@@ -160,6 +142,89 @@ function Stage:drawBgTiles()
 
     self.bg.batch:flush()
     love.graphics.draw(self.bg.batch)
+end
+
+function Stage:triggerMapTransition()
+    local half_player_width = self.player.width / 2
+    local half_player_height = self.player.height / 2
+
+    local right_threshold = vars.gw - half_player_width
+    local left_threshold = 0
+    local up_threshold = 0
+    local down_threshold = vars.gh - half_player_height
+
+    -- transition up
+
+    -- transition left
+    if self.player.x < left_threshold then
+        local x = vars.gw - self.player.width
+        local y = self.player.y
+        local new_map = self.neighbors.left
+        self:loadArea(new_map, { x = x, y = y, flipX = true })
+    end
+
+    -- transition right
+    if self.player.x >= right_threshold then
+        local x = 0 -- since we move right, player should appear on left side
+        local y = self.player.y
+        local new_map = self.neighbors.right
+        self:loadArea(new_map, { x = x, y = y })
+    end
+
+    -- transition down
+end
+
+function Stage:loadArea(map_file_name, player_position)
+    if self.area then
+        -- destroy existing area
+        self.area:destroy()
+    end
+
+    self.area = Area(Stage, { debug = false })
+    self.area.world = love.physics.newWorld(0, 0)
+
+    -- load map
+    self.tiled_map = cartographer.load('assets/maps/' .. map_file_name)
+
+    -- register neighboring maps
+    if self.tiled_map.properties then
+        for direction, number in pairs(self.tiled_map.properties) do
+            self.neighbors[direction] = 'map' .. number .. '.lua'
+        end
+    end
+
+    -- create ground collisions based on tilemap
+    -- `collidables` is an object layer; contains no sprite data
+    local ground_1 = self.tiled_map.layers.collidables
+    for _, o in ipairs(ground_1.objects) do
+        -- create collidable objects for all collidable Tiled objects
+        local ground_tile = Ground(self.area, o.x, o.y, {
+            width = o.width,
+            height = o.height
+        })
+
+        self.area:addGameObjects({ ground_tile })
+    end
+
+    -- create player object
+    self.player = Player(self.area, player_position.x, player_position.y, { flipX = player_position.flipX })
+    self.area:addGameObjects({ self.player })
+
+    -- set collision callbacks
+    local function beginContact(fixture_a, fixture_b, collision)
+        self.player:beginContact(fixture_a, fixture_b, collision)
+
+        -- set all player's projectiles collision callbacks
+        for _, projectile in ipairs(self.player.projectiles) do
+            projectile:beginContact(fixture_a, fixture_b, collision)
+        end
+    end
+
+    local function endContact(fixture_a, fixture_b, collision)
+        self.player:endContact(fixture_a, fixture_b, collision)
+    end
+
+    self.area.world:setCallbacks(beginContact, endContact)
 end
 
 return Stage

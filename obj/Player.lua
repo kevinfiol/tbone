@@ -30,6 +30,7 @@ function Player:new(area, x, y, opts)
     -- tbone.png 208x16
     local image = love.graphics.newImage('assets/tbone.png')
     self:setSpriteConfig(image)
+    self.sprite.flipX = opts.flipX or false
 
     -- define controls
     self.input = baton.new({
@@ -136,7 +137,7 @@ function Player:jump(dt)
         self.jump_timer = 0
     end
 
-    if self.jump_timer > 0 and self.jump_timer < 0.35 then
+    if self.jump_timer > 0 and self.jump_timer < 0.15 then
         self.velocity.y = -200
     end
 end

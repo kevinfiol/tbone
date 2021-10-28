@@ -10,7 +10,9 @@ return {
   tileheight = 8,
   nextlayerid = 4,
   nextobjectid = 7,
-  properties = {},
+  properties = {
+    ["right"] = "2"
+  },
   tilesets = {
     {
       name = "bg_clouds",

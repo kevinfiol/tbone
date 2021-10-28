@@ -10,7 +10,9 @@ return {
   tileheight = 8,
   nextlayerid = 4,
   nextobjectid = 13,
-  properties = {},
+  properties = {
+    ["left"] = "1"
+  },
   tilesets = {
     {
       name = "bg",

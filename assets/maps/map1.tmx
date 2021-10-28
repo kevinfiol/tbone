@@ -3,6 +3,9 @@
  <editorsettings>
   <export target="../map1.lua" format="lua"/>
  </editorsettings>
+ <properties>
+  <property name="right" value="2"/>
+ </properties>
  <tileset firstgid="1" name="bg_clouds" tilewidth="8" tileheight="8" tilecount="64" columns="8">
   <image source="../bg.png" width="64" height="64"/>
  </tileset>

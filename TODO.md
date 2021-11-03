@@ -11,7 +11,7 @@
 - [x] camera (zoomed in -- just means smaller screensize and follow player)
     - [x] fix projectiles cuz now they dont draw with the game screen sizes (need to find a way to consistently check if something if offscreen even while camera is moving)
 - [x] made new two maps as a Tiled world
-- [ ] single screen transition
+- [x] single screen transition
 - [ ] turn weapon into spear
     - [ ] can only shoot one spear at a time (or per screen)
     - [ ] spear should stick to walls

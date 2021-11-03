@@ -3,7 +3,6 @@ local Area = require 'engine.Area'
 local Object = require 'lib.classic'
 local Timer = require 'lib.timer'
 local cartographer = require 'lib.cartographer'
-local lume = require 'lib.lume'
 local ripple = require 'lib.ripple'
 
 local Ground = require 'obj.Ground'
@@ -196,6 +195,7 @@ function Stage:loadArea(map_file_name, player_position)
     -- create ground collisions based on tilemap
     -- `collidables` is an object layer; contains no sprite data
     local ground_1 = self.tiled_map.layers.collidables
+    local ground_tiles = {}
     for _, o in ipairs(ground_1.objects) do
         -- create collidable objects for all collidable Tiled objects
         local ground_tile = Ground(self.area, o.x, o.y, {
@@ -203,12 +203,18 @@ function Stage:loadArea(map_file_name, player_position)
             height = o.height
         })
 
-        self.area:addGameObjects({ ground_tile })
+        table.insert(ground_tiles, ground_tile)
     end
+
+    self.area:addGameObjects(ground_tiles)
 
     -- create player object
     self.player = Player(self.area, player_position.x, player_position.y, { flipX = player_position.flipX })
     self.area:addGameObjects({ self.player })
+
+    -- local Box = require 'obj.Box'
+    -- local box = Box(self.area, vars.gw / 2, vars.gh / 2)
+    -- self.area:addGameObjects({ box })
 
     -- set collision callbacks
     local function beginContact(fixture_a, fixture_b, collision)

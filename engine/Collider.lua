@@ -27,6 +27,9 @@ function Collider:new(world, collider_type, opts)
     self.body = nil
     self.shape = nil
     self.fixture = nil
+    self.width = nil
+    self.height = nil
+    self.radius = nil
     self.body_offset = { x = nil, y = nil }
 
     local x, y = opts.x, opts.y
@@ -44,8 +47,8 @@ function Collider:new(world, collider_type, opts)
     if opts.body_offset then
         self.body_offset.x = opts.body_offset.x or nil
         self.body_offset.y = opts.body_offset.y or nil
-        x = x + self.body_offset.x
-        y = y + self.body_offset.y
+        if self.body_offset.x then x = x + self.body_offset.x end
+        if self.body_offset.y then y = y + self.body_offset.y end
     end
 
     -- create body
@@ -54,11 +57,11 @@ function Collider:new(world, collider_type, opts)
 
     -- create shape
     if self.type == 'Circle' then
-        local radius = opts.radius
-        self.shape = love.physics.newCircleShape(radius)
+        self.radius = opts.radius
+        self.shape = love.physics.newCircleShape(self.radius)
     elseif self.type == 'Rectangle' then
-        local width, height = opts.width, opts.height
-        self.shape = love.physics.newRectangleShape(width, height)
+        self.width, self.height = opts.width, opts.height
+        self.shape = love.physics.newRectangleShape(self.width, self.height)
     end
 
     -- create fixture

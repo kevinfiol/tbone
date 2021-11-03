@@ -4,6 +4,7 @@ local baton = require 'lib.baton'
 local sodapop = require 'lib.sodapop'
 local ripple = require 'lib.ripple'
 local Projectile = require 'obj.Projectile'
+local Spear = require 'obj.Spear'
 
 local Player = GameObject:extend()
 
@@ -44,10 +45,11 @@ function Player:new(area, x, y, opts)
 
     -- projectiles
     self.projectiles = {}
-    for i = 1, 5 do
+    for i = 1, 1 do
         table.insert(self.projectiles,
             -- projectiles are inactive by default
-            Projectile(self.area, -100, -100)
+            -- Projectile(self.area, -100, -100)
+            Spear(self.area, -100, -100)
         )
     end
 
@@ -194,7 +196,7 @@ function Player:attack(dt)
         self.sprite:switch('attack', false)
         -- 16 + 4 = 20
         -- 0 - 4 = -4
-        local x_velocity = self.sprite.flipX and -400 or 400
+        local x_velocity = self.sprite.flipX and -4 or 4
         local x_spawn = self.x + (self.sprite.flipX and -4 or 20)
         local y_spawn = self.y + 8
 

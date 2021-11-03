@@ -19,9 +19,6 @@ function Projectile:new(area, x, y, opts)
         body_type = 'dynamic'
     })
 
-    -- default to inactive
-    self:setActive(self.is_active)
-
     -- load sprite
     local image = love.graphics.newImage('assets/projectile.png')
     local frame_width = 8
@@ -40,6 +37,9 @@ function Projectile:new(area, x, y, opts)
     self.sprite:setAnchor(function()
         return self.x + half_width, self.y + half_width
     end)
+
+    -- default to inactive
+    self:setActive(self.is_active)
 end
 
 function Projectile:update(dt)

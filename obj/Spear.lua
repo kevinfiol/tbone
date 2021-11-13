@@ -62,9 +62,10 @@ end
 function Spear:draw()
     if self.is_active then
         self.sprite:draw()
-        local x, y = self.collider.body:getPosition()
-        love.graphics.setColor(1, 0, 0)
-        love.graphics.rectangle('line', x, y, self.width, self.height)
+
+        -- local x, y = self.collider.body:getPosition()
+        -- love.graphics.setColor(1, 0, 0)
+        -- love.graphics.rectangle('line', x - self.collider.body_offset.x / 2, y, self.collider.width, self.collider.height)
     end
 end
 

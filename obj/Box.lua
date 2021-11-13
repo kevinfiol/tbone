@@ -16,7 +16,7 @@ function Box:new(area, x, y, opts)
         y = self.y,
         width = self.width,
         height = self.height,
-        body_type = 'dynamic',
+        body_type = 'static',
         body_offset = {
             x = (self.width / 2),
             y = (self.height / 2)
@@ -26,12 +26,6 @@ end
 
 function Box:update(dt)
     Box.super.update(self, dt)
-    print('self.y')
-    print(self.y)
-
-    local x, y = self.collider.body:getPosition()
-    print('body y')
-    print(y)
 end
 
 function Box:draw()

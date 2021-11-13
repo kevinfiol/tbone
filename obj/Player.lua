@@ -104,6 +104,10 @@ end
 
 function Player:draw()
     self.sprite:draw()
+
+    local x, y = self.collider.body:getPosition()
+    love.graphics.setColor(1, 0, 0)
+    love.graphics.rectangle('line', x - self.collider.body_offset.x / 2, y - self.collider.body_offset.y / 2, self.collider.width, self.collider.height)
 end
 
 function Player:jump(dt)
@@ -196,7 +200,7 @@ function Player:attack(dt)
         self.sprite:switch('attack', false)
         -- 16 + 4 = 20
         -- 0 - 4 = -4
-        local x_velocity = self.sprite.flipX and -4 or 4
+        local x_velocity = self.sprite.flipX and -400 or 400
         local x_spawn = self.x + (self.sprite.flipX and -4 or 20)
         local y_spawn = self.y + 8
 

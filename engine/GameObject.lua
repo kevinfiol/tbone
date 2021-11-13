@@ -18,7 +18,6 @@ end
 
 function GameObject:update(dt)
     if self.timer then self.timer:update(dt) end
-    -- if self.collider then self.collider.setPosition(self.x, self.y) end
     if self.collider then self.x, self.y = self.collider:getPosition() end
 end
 

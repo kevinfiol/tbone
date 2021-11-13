@@ -213,7 +213,8 @@ function Stage:loadArea(map_file_name, player_position)
     self.area:addGameObjects({ self.player })
 
     -- local Box = require 'obj.Box'
-    -- local box = Box(self.area, vars.gw / 2, vars.gh / 2)
+    -- -- local box = Box(self.area, vars.gw / 2, vars.gh / 2)
+    -- local box = Box(self.area, 0, 0)
     -- self.area:addGameObjects({ box })
 
     -- set collision callbacks

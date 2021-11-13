@@ -91,6 +91,8 @@ function Collider:destroy()
     self.body_offset = nil
 end
 
+-- this translates the body position to regular x, y coordinates that love2d uses
+-- so while pixel may be at 0, 0, the body might be at -4, -4
 function Collider:getPosition()
     local x, y = self.body:getPosition()
 
@@ -100,6 +102,8 @@ function Collider:getPosition()
     return x, y
 end
 
+-- likewise, given x,y coordinates love2d understands
+-- lets update the body so it is where we'd expect it to be
 function Collider:setPosition(x, y)
     local new_x, new_y = x, y
 

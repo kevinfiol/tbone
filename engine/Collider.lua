@@ -124,4 +124,16 @@ function Collider:setCollisionClass(collision_class)
     self.fixture:setMask(unpack(masks))
 end
 
+function Collider:checkCollision(fixture_a, fixture_b)
+    local colliders = { is_colliding = false, other_collider = nil }
+
+    if fixture_a == self.fixture or fixture_b == self.fixture then
+        colliders.is_colliding = true
+        local other_fixture = fixture_a ~= self.fixture and fixture_a or fixture_b
+        colliders.other_collider = other_fixture:getUserData()
+    end
+
+    return colliders
+end
+
 return Collider

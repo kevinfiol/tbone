@@ -12,6 +12,7 @@ function Spear:new(area, x, y, opts)
     self.width = opts.width or 8
     self.height = opts.height or 3
     self.is_active = opts.is_active or false
+    self.body_updates = {}
 
     self.collider = Collider(self.area.world, 'Rectangle', {
         collision_class = 'Spear',
@@ -53,6 +54,16 @@ function Spear:update(dt)
 
     if self.is_active then
         self.sprite:update(dt)
+
+        if #self.body_updates > 0 then
+            while #self.body_updates ~= 0 do
+                local update = table.remove(self.body_updates, 1)
+                if update.prop == 'type' then
+                    self.collider.body:setType(update.value)
+                end
+            end
+        end
+
         if self.x < 0 or self.x > vars.gw then
             self:setActive(false)
         end
@@ -76,6 +87,7 @@ function Spear:setActive(is_active)
     else
         self.sprite:switch('default')
         self.collider:setCollisionClass('Spear')
+        self.collider.body:setType('dynamic')
     end
 
     self.is_active = is_active
@@ -101,9 +113,18 @@ function Spear:launch(x, y, x_velocity)
 end
 
 function Spear:beginContact(fixture_a, fixture_b, collision)
-    if fixture_a == self.collider.fixture or fixture_b == self.collider.fixture then
-        -- local fixture = fixture_a == self.collider.fixture and fixture_a or fixture_b
-        self:setActive(false)
+    local colliders = self.collider:checkCollision(fixture_a, fixture_b)
+    if colliders.is_colliding then
+        local other_collider = colliders.other_collider
+
+        if other_collider.collision_class == 'Ground' then
+            -- stick
+            self.collider.body:setLinearVelocity(0, 0)
+            table.insert(self.body_updates, {
+                prop = 'type',
+                value = 'static'
+            })
+        end
     end
 end
 

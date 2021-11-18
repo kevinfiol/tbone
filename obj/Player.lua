@@ -39,7 +39,8 @@ function Player:new(area, x, y, opts)
             left = { 'key:left' },
             right = { 'key:right' },
             jump = { 'key:z' },
-            shoot = { 'key:x' }
+            shoot = { 'key:x' },
+            retract = { 'key:c' }
         }
     })
 
@@ -92,6 +93,7 @@ function Player:update(dt)
 
     -- attacks
     self:attack(dt)
+    self:retract(dt)
 
     -- sprite animation update
     self.sprite:update(dt)
@@ -143,7 +145,7 @@ function Player:jump(dt)
         self.jump_timer = 0
     end
 
-    if self.jump_timer > 0 and self.jump_timer < 0.15 then
+    if self.jump_timer > 0 and self.jump_timer < 0.10 then
         self.velocity.y = -200
     end
 end
@@ -215,6 +217,18 @@ function Player:attack(dt)
     end
 end
 
+function Player:retract(dt)
+    local projectile = self.projectiles[1]
+
+    if self.input:pressed('retract') and projectile.is_active then
+        print('retract')
+
+        projectile:moveTo(self.x, self.y + 8, 2000, 20, function()
+            projectile:setActive(false)
+        end)
+    end
+end
+
 function Player:applyFriction(dt)
     local current_friction = (self.friction * dt)
 
@@ -253,6 +267,9 @@ end
 
 function Player:beginContact(fixture_a, fixture_b, collision)
     if self.is_grounded then return end
+
+    local colliders = self.collider:checkCollision(fixture_a, fixture_b)
+    inspect(colliders.other_collider)
 
     local _, normal_y = collision:getNormal()
     if fixture_a == self.collider.fixture then

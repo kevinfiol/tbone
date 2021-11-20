@@ -10,7 +10,7 @@ function Spear:new(area, x, y, opts)
     local opts = opts or {}
 
     self.width = opts.width or 8
-    self.height = opts.height or 3
+    self.height = opts.height or 1
     self.is_active = opts.is_active or false
     self.body_updates = {}
 
@@ -22,7 +22,8 @@ function Spear:new(area, x, y, opts)
         height = self.height,
         body_type = 'dynamic',
         body_offset = {
-            x = (self.width / 2)
+            x = (self.width / 2),
+            y = 2
         }
     })
 
@@ -117,7 +118,7 @@ function Spear:beginContact(fixture_a, fixture_b, collision)
     if colliders.is_colliding then
         local other_collider = colliders.other_collider
 
-        if other_collider.collision_class == 'Ground' then
+        if other_collider.collision_class == 'Ground' or other_collider.collision_class == 'Gacko' then
             -- stick
             self.collider.body:setLinearVelocity(0, 0)
             table.insert(self.body_updates, {

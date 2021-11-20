@@ -7,6 +7,7 @@ local ripple = require 'lib.ripple'
 
 local Ground = require 'obj.Ground'
 local Player = require 'obj.Player'
+local Gacko = require 'obj.Gacko';
 
 local Stage = Object:extend()
 
@@ -57,8 +58,13 @@ function Stage:new()
         pixel_height = bg_height * tile_width,
     }
 
+    self.font = love.graphics.newFont('assets/fonts/m5x7.ttf', 16)
+    self.font:setFilter('nearest', 'nearest')
+    self.win_text = 'You did it. You killed me.'
+
     -- load the default area
     self:loadArea('map1.lua', { x = vars.gw / 16, y = vars.gh / 2 })
+    -- self:loadArea('map2.lua', { x = 105, y = 10 })
 end
 
 function Stage:update(dt)
@@ -90,6 +96,16 @@ function Stage:draw()
             end
 
             self.area:draw()
+
+            if self.gacko and self.gacko.has_been_killed then
+                local width = self.font:getWidth(self.win_text)
+                local height = self.font:getHeight(self.win_text)
+
+                love.graphics.setColor(0, 0, 0, 255)
+                love.graphics.setFont(self.font)
+                love.graphics.print(self.win_text, vars.gw / 14, vars.gh / 14)
+            end
+
             -- camera:detach()
         love.graphics.setCanvas()
 
@@ -152,14 +168,29 @@ function Stage:triggerMapTransition()
     local up_threshold = 0
     local down_threshold = vars.gh - half_player_height
 
+    local player_opts = {
+        flipX = self.player.sprite.flipX,
+        is_walking = self.player.is_walking,
+        is_grounded = self.player.is_grounded,
+        is_jumping = self.player.is_jumping,
+        jump_timer = self.player.jump_timer,
+        current_ground_collision = self.player.current_ground_collision
+    }
+
     -- transition up
+    if self.player.y < up_threshold then
+        local x = self.player.x
+        local y = down_threshold
+        local new_map = self.neighbors.up
+        self:loadArea(new_map, { x = x, y = y }, player_opts)
+    end
 
     -- transition left
     if self.player.x < left_threshold then
         local x = vars.gw - self.player.width
         local y = self.player.y
         local new_map = self.neighbors.left
-        self:loadArea(new_map, { x = x, y = y, flipX = true })
+        self:loadArea(new_map, { x = x, y = y }, player_opts)
     end
 
     -- transition right
@@ -167,13 +198,19 @@ function Stage:triggerMapTransition()
         local x = 0 -- since we move right, player should appear on left side
         local y = self.player.y
         local new_map = self.neighbors.right
-        self:loadArea(new_map, { x = x, y = y })
+        self:loadArea(new_map, { x = x, y = y }, player_opts)
     end
 
     -- transition down
+    if self.player.y > down_threshold then
+        local x = self.player.x
+        local y = 0
+        local new_map = self.neighbors.down
+        self:loadArea(new_map, { x = x, y = y }, player_opts)
+    end
 end
 
-function Stage:loadArea(map_file_name, player_position)
+function Stage:loadArea(map_file_name, player_position, player_opts)
     if self.area then
         -- destroy existing area
         self.area:destroy()
@@ -209,17 +246,24 @@ function Stage:loadArea(map_file_name, player_position)
     self.area:addGameObjects(ground_tiles)
 
     -- create player object
-    self.player = Player(self.area, player_position.x, player_position.y, { flipX = player_position.flipX })
+    self.player = Player(self.area, player_position.x, player_position.y, player_opts)
     self.area:addGameObjects({ self.player })
 
-    -- local Box = require 'obj.Box'
-    -- -- local box = Box(self.area, vars.gw / 2, vars.gh / 2)
-    -- local box = Box(self.area, 0, 0)
-    -- self.area:addGameObjects({ box })
+    if map_file_name == 'map2.lua' then
+        -- add gacko
+        self.gacko = Gacko(self.area, 10, 24)
+        self.area:addGameObjects({ self.gacko })
+    else
+        self.gacko = nil
+    end
 
     -- set collision callbacks
     local function beginContact(fixture_a, fixture_b, collision)
         self.player:beginContact(fixture_a, fixture_b, collision)
+
+        if self.gacko then
+            self.gacko:beginContact(fixture_a, fixture_b, collision)
+        end
 
         -- set all player's projectiles collision callbacks
         for _, projectile in ipairs(self.player.projectiles) do
@@ -229,6 +273,10 @@ function Stage:loadArea(map_file_name, player_position)
 
     local function endContact(fixture_a, fixture_b, collision)
         self.player:endContact(fixture_a, fixture_b, collision)
+
+        if self.gacko and self.gacko.collider then
+            self.gacko:endContact(fixture_a, fixture_b, collision)
+        end
     end
 
     self.area.world:setCallbacks(beginContact, endContact)

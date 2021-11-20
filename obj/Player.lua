@@ -57,14 +57,14 @@ function Player:new(area, x, y, opts)
     self.area:addGameObjects(self.projectiles)
 
     -- flags
-    self.is_walking = false
-    self.is_grounded = false
-    self.is_jumping = false
-    self.jump_timer = 0
-    self.current_ground_collision = nil
+    self.is_walking = opts.is_walking or false
+    self.is_grounded = opts.is_grounded or false
+    self.is_jumping = opts.is_jumping or false
+    self.jump_timer = opts.jump_timer or 0
+    self.current_ground_collision = opts.current_ground_collision or nil
 
     -- self.rotation = -math.pi / 2 -- angle the player is moving towards, pointing up; math.pi/2 is down, -math.pi/2 is up
-    self.velocity = { x = 0, y = 0 }
+    self.velocity = opts.velocity or { x = 0, y = 0 }
     self.max_velocity = { x = 80, y = 300 }
     self.acceleration = 900
     self.friction = 800
@@ -73,9 +73,11 @@ function Player:new(area, x, y, opts)
     -- load sounds
     local jump = love.audio.newSource('assets/audio/jump.wav', 'static')
     local shoot = love.audio.newSource('assets/audio/shoot.wav', 'static')
+    local retract = love.audio.newSource('assets/audio/retract.wav', 'static')
     self.sounds = {
         jump = ripple.newSound(jump, { volume = 1, loop = false }),
         shoot = ripple.newSound(shoot, { volume = 1, loop = false }),
+        retract = ripple.newSound(retract, { volume = 0.5, loop = false })
     }
 end
 
@@ -145,8 +147,8 @@ function Player:jump(dt)
         self.jump_timer = 0
     end
 
-    if self.jump_timer > 0 and self.jump_timer < 0.10 then
-        self.velocity.y = -200
+    if self.jump_timer > 0 and self.jump_timer < 0.15 then
+        self.velocity.y = -150
     end
 end
 
@@ -221,7 +223,7 @@ function Player:retract(dt)
     local projectile = self.projectiles[1]
 
     if self.input:pressed('retract') and projectile.is_active then
-        print('retract')
+        self.sounds.retract:play()
 
         projectile:moveTo(self.x, self.y + 8, 2000, 20, function()
             projectile:setActive(false)
@@ -269,7 +271,6 @@ function Player:beginContact(fixture_a, fixture_b, collision)
     if self.is_grounded then return end
 
     local colliders = self.collider:checkCollision(fixture_a, fixture_b)
-    inspect(colliders.other_collider)
 
     local _, normal_y = collision:getNormal()
     if fixture_a == self.collider.fixture then

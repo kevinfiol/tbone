@@ -14,5 +14,6 @@ return {
     Ground = {{3}, {}},
     Projectile = {{4}, {2, 4}},
     Spear = {{5}, {5}},
-    Ghost = {{16}, all_categories}
+    Ghost = {{16}, all_categories},
+    Gacko = {{6}, {}}
 }

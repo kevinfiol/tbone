@@ -1,9 +1,9 @@
 local vars = require 'vars'
 
-debugger = require 'lib.debugger' -- uncomment to enable debugger
+-- debugger = require 'lib.debugger' -- uncomment to enable debugger
 
-local inspect_fn = require 'lib.inspect'
-inspect = function(t) print(inspect_fn(t)) end
+-- local inspect_fn = require 'lib.inspect'
+-- inspect = function(t) print(inspect_fn(t)) end
 
 
 function love.conf(t)
